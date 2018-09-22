@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <title>Instascan &ndash; Demo</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="adapter.min.js"></script>
+    <script type="text/javascript" src="instascan.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script type="text/javascript">
+			
+			var uagent = navigator.userAgent;
+			alert(uagent);
+			$(document).ready(function () {
+				var QRScanner = new function (){
+				scanner= null;
+				activeCamera= null;
+				cameras= [];
+				
+				this.getCamera = function(){
+					Instascan.Camera.getCameras().then(function (cameraList) {
+					cameras = cameraList;
+
+					$(cameras).each(function(i) {
+						$('#cameras').append("<li> <a>"+ (cameras[i].name || '(unknown)') +"</a></li>");
+					});
+					if (cameras.length > 0) {
+						activeCamera = cameras[0];
+						scanner.start(cameras[0]);
+					} else {
+						console.error('No cameras found.');
+					}
+					}).catch(function (e) {
+						console.error(e);
+					});
+				};
+				
+				this.formatName = function (name) {
+				  return name || '(unknown)';
+				};
+				
+				this.selectCamera = function (camera) {
+				  activeCamera = camera;
+				  scanner.start(camera);
+				};
+				this.stopCamera = function (camera) {
+				  activeCamera = camera;
+				  scanner.stop(camera);
+				};
+				
+				this.test = function() {
+					scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5 });
+					scanner.addListener('scan', function (content, image) {
+						$('#content').append("<li> "+ content +"</li>");
+						QRScanner.stopCamera(activeCamera);
+					});
+				};
+			};
+			
+			QRScanner.test();
+			
+			$('#scan').click(function()
+			{
+				QRScanner.getCamera();
+			});
+			
+			
+			});
+	</script>
+  </head>
+  <body>
+		<div>
+			<ul id="cameras">				
+			</ul>
+		</div>
+		<div>
+			<ul id="content">				
+			</ul>
+		</div>
+		<div>
+			<input id="scan" type="button" value="scan" /> 
+		</div>
+		<div class="preview-container">
+			<video id="preview"></video>
+		</div>
+  </body>
+</html>
